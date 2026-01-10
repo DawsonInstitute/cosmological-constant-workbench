@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ccw"
+version = "0.1.0"
+description = "Cosmological Constant Workbench: baseline discrepancy calculators, mechanism scaffolds, and constraint checks."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Arcticoder", email = "10162808+arcticoder@users.noreply.github.com" },
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.11",
+]
+
+[project.optional-dependencies]
+astro = ["astropy>=5.3"]
+plot = ["matplotlib>=3.8"]
+dev = ["pytest>=7.4"]
+
+[project.scripts]
+ccw-baseline = "ccw.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
