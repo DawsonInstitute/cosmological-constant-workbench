@@ -14,6 +14,18 @@ def test_observed_lambda_reasonable_magnitude() -> None:
     assert 1e-53 < lam < 1e-51
 
 
+def test_observed_lambda_regression_band_planck2018_like() -> None:
+    # A slightly tighter regression band to catch unit mistakes.
+    out = compute_baseline(BaselineInputs(h0_km_s_mpc=67.4, omega_lambda=0.6889, cutoff_name="electroweak"))
+    rho_lambda = out.observed["rho_lambda_j_m3"]
+    lam = out.observed["lambda_m_inv2"]
+
+    # Typical reference values are around:
+    # ρ_Λ ~ 6e-10 J/m^3 and Λ ~ 1.1e-52 m^-2.
+    assert 4e-10 < rho_lambda < 9e-10
+    assert 7e-53 < lam < 2e-52
+
+
 def test_naive_qft_cutoff_scaling_is_huge() -> None:
     out = compute_baseline(BaselineInputs(cutoff_name="planck"))
     ratio = out.naive_qft["rho_naive_over_rho_lambda"]
