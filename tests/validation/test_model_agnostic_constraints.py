@@ -20,8 +20,8 @@ from ccw.mechanisms import (
         CPLQuintessence(w0=-1.0, wa=0.0),
         RunningVacuumRVM(nu=0.0),
         ScalarFieldQuintessence(potential="exponential", lam=0.0, x0=0.0, z_max=5.0, n_eval=400),
-        UnimodularBookkeeping(),
-        SequesteringToy(delta_rho_j_m3=0.0),
+        UnimodularBookkeeping(lambda_bare_m_minus2=1e-52, rho_vac_quantum_j_m3=1e113, alpha_grav=0.0),
+        SequesteringToy(rho_vac_j_m3=1e113, rho_pt_j_m3=1e80, f_cancel=5e-124),
     ],
 )
 def test_default_mechanisms_are_finite_and_nonnegative_over_grid(mech) -> None:

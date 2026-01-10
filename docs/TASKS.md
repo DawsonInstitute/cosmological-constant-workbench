@@ -52,14 +52,14 @@ As of Jan 10, 2026:
    - Integrate background evolution (ODE) to get $\rho_{DE}(z)$ and $w(z)$
    - Validate: reproduces ΛCDM-like behavior in an appropriate parameter limit.
 
-7. [ ] Add “sequestering-like” and “unimodular-like” *explicit* toy bookkeeping that yields a derived residual (not just a constant addend):
+7. [x] Add "sequestering-like" and "unimodular-like" *explicit* toy bookkeeping that yields a derived residual (not just a constant addend):
    - Keep it transparent; no hidden tuning.
 
 ---
 
 ## Phase D — Integration + comparison
 
-8. [ ] Add an optional adapter that can *compare* against outputs from `lqg-cosmological-constant-predictor` (without making it a dependency).
+8. [x] Add an optional adapter that can *compare* against outputs from `lqg-cosmological-constant-predictor` (without making it a dependency).
    - Validate: adapter is guarded and never breaks core install.
 
 ---

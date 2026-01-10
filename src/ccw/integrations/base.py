@@ -47,3 +47,8 @@ def try_import_coherence_gravity_coupling() -> OptionalIntegrationResult:
         )
     except Exception as e:  # noqa: BLE001
         return OptionalIntegrationResult(available=False, detail=f"Not available: {e}")
+
+
+def lqg_predictor_available() -> bool:
+    """Check if lqg-cosmological-constant-predictor is available for comparison adapter."""
+    return try_import_lqg_cosmological_constant_predictor().available
