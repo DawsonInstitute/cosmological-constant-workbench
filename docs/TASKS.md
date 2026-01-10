@@ -15,8 +15,9 @@ As of Jan 10, 2026:
 
 ## Phase A — Reproducibility & auditability (researcher-friendly)
 
-1. [x] Add CI to run tests on GitHub Actions.
-   - Validate: clean install + `pytest` on at least Python 3.10–3.12.
+1. [x] Move automated tests to **manual** researcher-run tests (hts-coils style).
+   - Validate: `python -m pytest` works after fresh clone once deps are installed.
+   - Validate: tests do not require `pip install -e .` (use `tests/conftest.py` + `src/` path insertion).
 
 2. [x] Add a `ccw-report` command that produces a small, paper-friendly summary (JSON + Markdown):
    - Baseline observed $(\rho_\Lambda, \Lambda)$
@@ -32,12 +33,12 @@ As of Jan 10, 2026:
 
 ## Phase B — Constraints (what any proposal must satisfy)
 
-4. [ ] Add a minimal cosmology observable layer (flat FRW):
+4. [x] Add a minimal cosmology observable layer (flat FRW):
    - Implement $H(z)$ for ΛCDM and for mechanisms providing $\rho_{DE}(z)$.
    - Add distances: comoving distance and luminosity distance.
    - Validate: sanity checks vs ΛCDM limits.
 
-5. [ ] Encode “must-not-break” constraints as unit tests (model-agnostic):
+5. [x] Encode “must-not-break” constraints as unit tests (model-agnostic):
    - $\rho_{DE}(z) > 0$ over a chosen redshift range (configurable)
    - If a mechanism provides $w(z)$, ensure it stays within declared bounds
    - Smoothness/continuity checks (no singularities for default params)
@@ -46,7 +47,7 @@ As of Jan 10, 2026:
 
 ## Phase C — Mechanism deepening (only after A+B)
 
-6. [ ] Replace the CPL-only quintessence placeholder with an actual scalar-field evolution (toy but explicit):
+6. [x] Replace the CPL-only quintessence placeholder with an actual scalar-field evolution (toy but explicit):
    - Choose 1–2 potentials (e.g., exponential, inverse power-law)
    - Integrate background evolution (ODE) to get $\rho_{DE}(z)$ and $w(z)$
    - Validate: reproduces ΛCDM-like behavior in an appropriate parameter limit.
