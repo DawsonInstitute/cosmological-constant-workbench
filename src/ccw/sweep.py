@@ -7,7 +7,15 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
 from .baseline import BaselineInputs, compute_baseline
-from .mechanisms import CPLQuintessence, CosmologyBackground, RunningVacuumRVM, SequesteringToy, UnimodularBookkeeping
+from .mechanisms import (
+    CPLQuintessence,
+    CosmologyBackground,
+    RunningVacuumRVM,
+    ScalarFieldQuintessence,
+    SequesteringToy,
+    SUSYBreaking,
+    UnimodularBookkeeping,
+)
 
 
 @dataclass(frozen=True)
@@ -26,10 +34,34 @@ def evaluate_mechanism(name: str, params: Dict[str, Any], z: float, bg: Cosmolog
         mech = CPLQuintessence(w0=float(params.get("w0", -1.0)), wa=float(params.get("wa", 0.0)))
     elif key in {"rvm", "running_vacuum", "running_vacuum_rvm"}:
         mech = RunningVacuumRVM(nu=float(params.get("nu", 0.0)))
+    elif key in {"scalar_field", "scalar_field_quintessence"}:
+        mech = ScalarFieldQuintessence(
+            potential=params.get("potential", "exponential"),
+            lam=float(params.get("lam", 0.0)),
+            alpha=float(params.get("alpha", 1.0)),
+            phi0=float(params.get("phi0", 1.0)),
+            x0=float(params.get("x0", 0.0)),
+            z_max=float(params.get("z_max", 5.0)),
+            n_eval=int(params.get("n_eval", 400)),
+        )
+    elif key in {"susy", "susy_breaking"}:
+        mech = SUSYBreaking(
+            m_susy_gev=float(params.get("m_susy_gev", 1e3)),
+            loop_factor=float(params.get("loop_factor", 1.0 / (16.0 * 3.14159**2))),
+            log_enhancement=bool(params.get("log_enhancement", True)),
+        )
     elif key in {"unimodular", "unimodular_bookkeeping"}:
-        mech = UnimodularBookkeeping()
+        mech = UnimodularBookkeeping(
+            lambda_bare_m_minus2=float(params.get("lambda_bare_m_minus2", 1e-52)),
+            rho_vac_quantum_j_m3=float(params.get("rho_vac_quantum_j_m3", 1e113)),
+            alpha_grav=float(params.get("alpha_grav", 0.0)),
+        )
     elif key in {"sequestering", "sequestering_toy"}:
-        mech = SequesteringToy(delta_rho_j_m3=float(params.get("delta_rho_j_m3", 0.0)))
+        mech = SequesteringToy(
+            rho_vac_j_m3=float(params.get("rho_vac_j_m3", 1e113)),
+            rho_pt_j_m3=float(params.get("rho_pt_j_m3", 1e80)),
+            f_cancel=float(params.get("f_cancel", 1e-120)),
+        )
     else:
         raise ValueError(f"Unknown mechanism: {name}")
 

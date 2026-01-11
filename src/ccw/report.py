@@ -6,8 +6,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .baseline import BaselineInputs, BaselineOutputs, compute_baseline
-from .mechanisms import CosmologyBackground
-from .sweep import SweepRow, run_sweep
+from .constraints import check_scalar_field_swampland, holographic_bound_from_hz
+from .frw import h_z_lcdm_s_inv, h_z_from_rho_de_s_inv
+from .mechanisms import CosmologyBackground, ScalarFieldQuintessence
+from .sweep import SweepRow, evaluate_mechanism, run_sweep
 
 
 @dataclass(frozen=True)
@@ -22,6 +24,11 @@ class ReportConfig:
     mechanism: Optional[str] = None
     grid: Optional[List[Dict[str, Any]]] = None
     z_values: tuple[float, ...] = (0.0, 1.0, 2.0)
+
+    # Constraint checks
+    run_constraints: bool = False
+    swampland_c_min: float = 2.0 / (3.0**0.5)
+    holographic_c_factor: float = 1.0
 
 
 def _markdown_table(rows: List[Dict[str, Any]], headers: List[str]) -> str:
@@ -81,6 +88,50 @@ def generate_report(cfg: ReportConfig) -> Dict[str, Any]:
             "rows": [asdict(r) for r in rows],
         }
 
+        if cfg.run_constraints:
+            constraints_results: List[Dict[str, Any]] = []
+            for params in grid:
+                constraint_entry: Dict[str, Any] = {"params": params, "checks": []}
+
+                # Check swampland for scalar-field mechanisms
+                if cfg.mechanism.lower() in {"scalar_field", "scalar_field_quintessence"}:
+                    try:
+                        # Reconstruct mechanism instance
+                        mech = ScalarFieldQuintessence(
+                            potential=params.get("potential", "exponential"),
+                            lam=params.get("lam", 0.0),
+                            alpha=params.get("alpha", 1.0),
+                            phi0=params.get("phi0", 1.0),
+                            x0=params.get("x0", 0.0),
+                            z_max=max(cfg.z_values) if cfg.z_values else 5.0,
+                            n_eval=400,
+                        )
+                        chk = check_scalar_field_swampland(mech, bg, z_values=cfg.z_values, c_min=cfg.swampland_c_min)
+                        constraint_entry["checks"].append({"type": "swampland", "ok": chk.ok, "detail": chk.detail})
+                    except Exception as e:
+                        constraint_entry["checks"].append({"type": "swampland", "ok": False, "detail": f"Error: {e}"})
+
+                # Check holographic bounds for all mechanisms
+                for z in cfg.z_values:
+                    try:
+                        row_data = evaluate_mechanism(cfg.mechanism, params, z, bg)
+                        rho_de = row_data.rho_de_j_m3
+
+                        def hz(zz: float) -> float:
+                            return h_z_from_rho_de_s_inv(zz, bg, rho_de)
+
+                        chk_holo = holographic_bound_from_hz(
+                            z, hz_s_inv=hz, rho_de_j_m3=rho_de, c_factor=cfg.holographic_c_factor
+                        )
+                        constraint_entry["checks"].append(
+                            {"type": "holographic", "z": z, "ok": chk_holo.ok, "detail": chk_holo.detail}
+                        )
+                    except Exception as e:
+                        constraint_entry["checks"].append({"type": "holographic", "z": z, "ok": False, "detail": f"Error: {e}"})
+
+                constraints_results.append(constraint_entry)
+            report["constraints"] = constraints_results
+
     return report
 
 
@@ -122,5 +173,17 @@ def write_report(report: Dict[str, Any], out_json: Path, out_md: Path) -> None:
                 ["mechanism", "z", "rho_de_j_m3", "w_de", "params"],
             )
         )
+
+    if "constraints" in report:
+        md_lines.append("")
+        md_lines.append("## Constraints")
+        for entry in report["constraints"]:
+            md_lines.append(f"**Params**: {json.dumps(entry['params'], sort_keys=True)}")
+            md_lines.append("")
+            for chk in entry["checks"]:
+                status = "✓ PASS" if chk.get("ok") else "✗ FAIL"
+                z_info = f" (z={chk['z']})" if "z" in chk else ""
+                md_lines.append(f"- {chk['type']}{z_info}: {status} — {chk['detail']}")
+            md_lines.append("")
 
     out_md.write_text("\n".join(md_lines) + "\n")

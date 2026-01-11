@@ -76,18 +76,18 @@ Right now: **no novel discovery** suitable for a strong paper claim.
 
 ## Phase E — Immediate computational enhancements (constraints-first)
 
-9. [ ] Add **swampland conjecture** checks for scalar-field mechanisms (quick theoretical filters):
+9. [x] Add **swampland conjecture** checks for scalar-field mechanisms (quick theoretical filters):
    - Implement refined de Sitter gradient bound (toy form): $|\nabla V|/V \ge c$ with configurable $c$.
    - For exponential potential $V\propto e^{-\lambda\phi}$, the check reduces to $\lambda \ge c$.
    - For inverse-power potential $V\propto \phi^{-\alpha}$, check along trajectory: $\alpha/\phi(z) \ge c$.
    - Integrate into validation tests and (optionally) sweep filtering/reporting.
 
-10. [ ] Add **holographic energy-density bounds** as optional constraints:
+10. [x] Add **holographic energy-density bounds** as optional constraints:
    - Implement a simple bound $\rho_{DE} \le 3 c^4/(8\pi G L^2)$ with configurable IR scale $L$.
    - Provide a default IR choice $L(z)=c/H(z)$ (Hubble scale) for quick checks.
    - Integrate into validation tests (model-agnostic) and report summaries.
 
-11. [ ] Add a small “constraints report” section to `ccw-report`:
+11. [x] Add a small "constraints report" section to `ccw-report`:
    - For each mechanism, report pass/fail for swampland + holographic bounds over a redshift grid.
    - Keep it deterministic and purely diagnostic (no data fitting).
 
@@ -95,7 +95,7 @@ Right now: **no novel discovery** suitable for a strong paper claim.
 
 ## Phase F — Theoretical extensions (mechanisms with explicit scale ties)
 
-12. [ ] Implement a **SUSY-breaking vacuum energy** toy mechanism:
+12. [x] Implement a **SUSY-breaking vacuum energy** toy mechanism:
    - Model $\rho_{vac}\sim m_{SUSY}^4/(16\pi^2)\,\log(M_{Pl}/m_{SUSY})$.
    - Surface explicit experimental priors (e.g., $m_{SUSY}\gtrsim 1$ TeV).
    - Provide sweep hooks and “required tuning” diagnostics.
