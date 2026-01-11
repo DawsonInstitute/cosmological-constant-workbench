@@ -71,3 +71,49 @@ We only start a paper draft if we can claim one of the following, with reproduci
 - A **new constraint** (e.g., a bound on a parameter family) derived from null results / consistency requirements.
 
 Right now: **no novel discovery** suitable for a strong paper claim.
+
+---
+
+## Phase E — Immediate computational enhancements (constraints-first)
+
+9. [ ] Add **swampland conjecture** checks for scalar-field mechanisms (quick theoretical filters):
+   - Implement refined de Sitter gradient bound (toy form): $|\nabla V|/V \ge c$ with configurable $c$.
+   - For exponential potential $V\propto e^{-\lambda\phi}$, the check reduces to $\lambda \ge c$.
+   - For inverse-power potential $V\propto \phi^{-\alpha}$, check along trajectory: $\alpha/\phi(z) \ge c$.
+   - Integrate into validation tests and (optionally) sweep filtering/reporting.
+
+10. [ ] Add **holographic energy-density bounds** as optional constraints:
+   - Implement a simple bound $\rho_{DE} \le 3 c^4/(8\pi G L^2)$ with configurable IR scale $L$.
+   - Provide a default IR choice $L(z)=c/H(z)$ (Hubble scale) for quick checks.
+   - Integrate into validation tests (model-agnostic) and report summaries.
+
+11. [ ] Add a small “constraints report” section to `ccw-report`:
+   - For each mechanism, report pass/fail for swampland + holographic bounds over a redshift grid.
+   - Keep it deterministic and purely diagnostic (no data fitting).
+
+---
+
+## Phase F — Theoretical extensions (mechanisms with explicit scale ties)
+
+12. [ ] Implement a **SUSY-breaking vacuum energy** toy mechanism:
+   - Model $\rho_{vac}\sim m_{SUSY}^4/(16\pi^2)\,\log(M_{Pl}/m_{SUSY})$.
+   - Surface explicit experimental priors (e.g., $m_{SUSY}\gtrsim 1$ TeV).
+   - Provide sweep hooks and “required tuning” diagnostics.
+
+13. [ ] Implement a **holographic / entropic gravity** toy mechanism:
+   - Start with a simple HDE-style ansatz (explicit $L$ choice; document what is assumed).
+   - Compute implied $\rho_{DE}(z)$ and compare FRW observables.
+   - Add validation tests for continuity and positivity.
+
+---
+
+## Phase G — Empirical validation (UQ without pure curve-fitting)
+
+14. [ ] Add Bayesian/UQ scaffolding for parameter constraints:
+   - Start with a tiny, self-contained dataset loader (CSV) and a likelihood for distance modulus $\mu(z)$.
+   - Prefer lightweight dependencies (SciPy optimization first; MCMC optional).
+   - Output posteriors/evidence-like summaries to quantify tuning pressure.
+
+15. [ ] Add a minimal “null test” harness:
+   - Define a small set of observational sanity bounds (e.g., $w\approx -1$ today; $H(z)$ monotonicity).
+   - Auto-mark parameter regions as excluded in sweep outputs.
