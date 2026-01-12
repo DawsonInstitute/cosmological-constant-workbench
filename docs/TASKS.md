@@ -154,7 +154,7 @@ Right now: **no novel discovery** suitable for a strong paper claim.
    - Check if current H(z) evolution satisfies TCC over cosmic history.
    - Explore tension between TCC and eternal inflation.
 
-17. [ ] Implement **weak gravity conjecture (WGC)** consistency checks:
+17. [x] Implement **weak gravity conjecture (WGC)** consistency checks:
    - For scalar field mechanisms, check WGC bound on mass vs coupling.
    - Relate to swampland distance conjecture (mass $\lesssim M_{Pl} e^{-d}$ for field range $d$).
    - Document parameter space excluded by WGC + swampland.
@@ -222,19 +222,42 @@ Right now: **no novel discovery** suitable for a strong paper claim.
 
 ---
 
-## Immediate next steps (priority order)
+## Immediate next steps (REFINED priority order)
 
-**High priority (feasible, high impact):**
-1. Phase H.16-17: TCC + WGC constraints (filter parameter space further)
-2. Phase I.19: CMB+BAO integration (stronger empirical constraints)
-3. Phase J.22: Self-consistent solver (fix approximation in current pipeline)
+**Rationale**: Start with theoretical extensions for quick filtering, then empirical enhancements for rigor, followed by computational upgrades for self-consistency, and exploratory models for radical alternatives. This sequence leverages low-effort wins while building toward key gaps (approximation fixes, tension alleviation).
 
-**Medium priority (exploratory):**
-4. Phase H.18: Emergent gravity toy model (test radical alternative)
-5. Phase I.20: σ₈ tension diagnostic (test modified gravity)
+**Phase 1: Theoretical filters (quick wins, high impact)**
+1. ✓ Phase H.16: TCC constraints — **COMPLETE**
+2. → Phase H.17: WGC constraints (check scalar mass vs coupling bounds)
+   - Filter mechanisms violating quantum gravity consistency
+   - Document parameter space excluded by WGC + swampland distance conjecture
 
-**Low priority (high-effort, uncertain payoff):**
-6. Phase K: LQG deep integration (requires major effort, speculative)
+**Phase 2: Empirical integration (strengthen constraints)**
+3. Phase I.19: CMB + BAO observables (joint SNe+CMB+BAO fits)
+   - Add angular diameter distance d_A(z) for CMB acoustic scale
+   - Add BAO H(z) measurements (e.g., DESI data)
+   - Extend likelihood to joint constraints, tighten w(z) bounds
+4. Phase I.20: σ₈ tension diagnostic (medium priority)
+   - Compute matter power spectrum amplitude from mechanisms
+   - Check if modified gravity alleviates Hubble/σ₈ tensions
+   - Quantify improvement over ΛCDM in joint fits
+
+**Phase 3: Computational self-consistency (fix approximations)**
+5. Phase J.22: Self-consistent cosmology solver
+   - Currently: ρ_DE(z) on fixed ΛCDM background (approximation)
+   - Upgrade: solve coupled ODEs for H(a) and mechanism fields (φ, etc.)
+   - Validate self-consistent solution, check backreaction effects
+
+**Phase 4: Exploratory mechanisms (radical alternatives)**
+6. Phase H.18: Emergent gravity / entropic force framework
+   - Implement Verlinde-style F = T ∇S on Hubble horizon
+   - Derive modified Friedmann from holographic entropy
+   - Test if emergent gravity reproduces ΛCDM without Λ (tuning-free?)
+
+**Phase 5: Speculative deep integration (high-effort, uncertain payoff)**
+7. Phase K.25-27: LQG integration (if resources allow)
+   - Full pipeline integration with lqg-cosmological-constant-predictor
+   - Polymer cosmology corrections, spin foam amplitudes
 
 ---
 
