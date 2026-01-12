@@ -4,12 +4,12 @@ Tests for null test harness.
 
 import numpy as np
 import pytest
-from src.ccw.null_tests import (
+from ccw.null_tests import (
     NullTestHarness,
     NullTestBound,
     evaluate_mechanism_with_null_tests,
 )
-from src.ccw.mechanisms import HolographicDarkEnergy, CosmologyBackground
+from ccw.mechanisms import HolographicDarkEnergy, CosmologyBackground
 
 
 def test_null_test_harness_initialization():

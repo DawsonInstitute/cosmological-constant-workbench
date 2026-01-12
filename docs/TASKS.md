@@ -1,9 +1,11 @@
 # Task list: next steps (cosmological constant workbench)
 
-As of Jan 10, 2026:
+As of Jan 12, 2026:
 - We have **not** solved the cosmological constant problem.
-- We *have* built a reproducible baseline + toy-mechanism/sweep framework.
-- The next steps are to (1) harden reproducibility, (2) encode falsifiable constraints, and (3) only then explore mechanisms.
+- We *have* built a reproducible baseline + toy-mechanism/sweep framework, and encoded multiple falsifiable constraints.
+- Empirical integration is underway: joint SNe + CMB + BAO likelihood is implemented and tested.
+- Growth diagnostics (σ₈ / fσ₈) are implemented as an additional discriminator.
+- Next: extend the “self-consistent solver” from algebraic closures to fully coupled ODE solvers for mechanisms that require them.
 
 ## Status legend
 
@@ -168,12 +170,12 @@ Right now: **no novel discovery** suitable for a strong paper claim.
 
 ## Phase I — Advanced empirical constraints
 
-19. [ ] Integrate **CMB + BAO** observables (not just SNe Ia):
+19. [x] Integrate **CMB + BAO** observables (not just SNe Ia):
    - Add angular diameter distance $d_A(z)$ for CMB acoustic scale.
    - Add BAO Hubble parameter measurements $H(z)$.
    - Extend likelihood to joint SNe+CMB+BAO fit.
 
-20. [ ] Implement **$\sigma_8$ tension** diagnostic:
+20. [x] Implement **$\sigma_8$ tension** diagnostic:
    - Compute matter power spectrum amplitude from mechanisms.
    - Check if modified gravity mechanisms alleviate Hubble/$\sigma_8$ tensions.
    - Quantify improvement over ΛCDM in joint fits.
@@ -186,9 +188,10 @@ Right now: **no novel discovery** suitable for a strong paper claim.
 
 ## Phase J — Self-consistency and backreaction
 
-22. [ ] Implement **self-consistent cosmology solver** for mechanisms:
-   - Currently: mechanisms provide ρ_DE(z), but H(z) computed from ΛCDM background.
-   - Upgrade: solve coupled ODEs for H(z) and mechanism fields simultaneously.
+22. [-] Implement **self-consistent cosmology solver** for mechanisms:
+   - Fixed: SNe likelihood now depends directly on provided H(z) (no hard-coded ΛCDM placeholder).
+   - Fixed: HDE is now a proper `Mechanism` and can be used to build H(z) via Friedmann.
+   - Next: solve coupled ODEs for mechanisms where ρ_DE depends on H or fields (beyond algebraic closures).
    - Validate: self-consistent solution matches toy approximation for small deviations.
 
 23. [ ] Add **backreaction estimates** for quantum corrections:
@@ -239,10 +242,11 @@ Right now: **no novel discovery** suitable for a strong paper claim.
    - ✅ Extended likelihood.py with joint SNe+CMB+BAO likelihood
    - ✅ 89 tests pass (12 new tests for CMB/BAO observables and joint fits)
    - Status: Planck ℓ_A = 301.63 ± 0.15 implemented with comoving distance formula
-4. [ ] Phase I.20: σ₈ tension diagnostic (medium priority)
-   - Compute matter power spectrum amplitude from mechanisms
-   - Check if modified gravity alleviates Hubble/σ₈ tensions
-   - Quantify improvement over ΛCDM in joint fits
+4. [x] Phase I.20: σ₈ tension diagnostic (medium priority)
+   - ✅ Added a minimal GR linear-growth solver to compute D(z), f(z), σ₈(z), and fσ₈(z)
+   - ✅ Added an illustrative BOSS-like fσ₈ dataset + χ² diagnostic
+   - ✅ Added tests and a runnable demo script
+   - Files: src/ccw/sigma8_diagnostic.py, tests/test_sigma8_diagnostic.py, examples/demo_sigma8.py
 
 **Phase 3: Computational self-consistency (fix approximations)**
 5. Phase J.22: Self-consistent cosmology solver

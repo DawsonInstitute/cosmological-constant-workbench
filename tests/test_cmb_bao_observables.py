@@ -4,7 +4,7 @@ Tests for CMB and BAO observables.
 
 import numpy as np
 import pytest
-from src.ccw.cmb_bao_observables import (
+from ccw.cmb_bao_observables import (
     angular_diameter_distance_mpc,
     cmb_acoustic_scale_ell_a,
     dilation_scale_dv,
@@ -12,8 +12,8 @@ from src.ccw.cmb_bao_observables import (
     get_boss_bao_observables,
     get_desi_bao_observables,
 )
-from src.ccw.mechanisms import CosmologyBackground
-from src.ccw.frw import h_z_lcdm_s_inv
+from ccw.mechanisms import CosmologyBackground
+from ccw.frw import h_z_lcdm_s_inv
 
 
 def test_angular_diameter_distance_positive():
@@ -50,7 +50,7 @@ def test_cmb_acoustic_scale_order_of_magnitude():
     def hz_callable(z):
         return h_z_lcdm_s_inv(z, bg)
     
-    from src.ccw.cmb_bao_observables import cmb_acoustic_scale_ell_a
+    from ccw.cmb_bao_observables import cmb_acoustic_scale_ell_a
     ell_a = cmb_acoustic_scale_ell_a(1090, hz_callable, r_s_mpc=147.0)
     
     # ℓ_A = π D_C / r_s ~ π * 14000 / 147 ~ 299

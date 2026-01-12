@@ -1,206 +1,132 @@
-"""
-Holographic dark energy (HDE) mechanism.
+"""Holographic dark energy (HDE) mechanism.
 
-Toy implementation of holographic/entropic gravity-inspired dark energy with explicit IR cutoff choices.
+This file implements a toy HDE-style mechanism behind the common ansatz
 
-Physical assumptions:
-1. Holographic principle constrains maximal entropy in a region: S_max ~ (Area/l_P^2) ~ L^2/l_P^2.
-2. Identifying the system size L with an IR cutoff yields ρ_DE ~ 3c^2/(8πG L^2).
-3. The IR cutoff L is parameterized:
-   - "hubble": L(z) = c/H(z) (future horizon)
-   - "particle_horizon": L(z) = a(z) * ∫ c dz'/H(z') from z to ∞ (particle horizon)
-   - "event_horizon": L(z) = a(z) * ∫ c dz'/H(z') from 0 to z (event horizon approximation)
+  ρ_DE(z) = 3 c^4 / (8π G L(z)^2)
 
-Reference:
-- Li M. (2004), "A Model of Holographic Dark Energy", Phys. Lett. B 603, 1-5.
-- Hsu S. D. H. (2004), "Entropy Bounds and Dark Energy", Phys. Lett. B 594, 13-16.
+with explicit IR cutoff choices L(z).
 
-Explicit scale ties:
-- L is constructed from FRW observables (H(z), a(z)).
-- No hidden tuning; ρ_DE is derived from the chosen IR cutoff.
-
-Limitations:
-- Toy model — does not address backreaction or solve for full self-consistent cosmology.
-- Particle/event horizon integrals assume ΛCDM background for tractability.
+Scope and intent:
+- This is scaffolding for constraint exploration.
+- For the Hubble cutoff we use a simple *self-consistent algebraic closure*
+  (because L depends on H).
+- For the horizon-integral cutoffs we keep a ΛCDM background in the integral
+  for tractability.
 """
 
+from __future__ import annotations
+
+import math
 from dataclasses import dataclass
 from typing import Literal
-import numpy as np
+
 from scipy import integrate
 
-# Physical constants
-C_LIGHT_M_S = 2.99792458e8  # speed of light (m/s)
-G_SI = 6.67430e-11  # gravitational constant (m^3 kg^-1 s^-2)
-H_BAR_SI = 1.054571817e-34  # reduced Planck constant (J·s)
-M_PLANCK_M = np.sqrt(H_BAR_SI * C_LIGHT_M_S / G_SI)  # Planck length (m)
+from ..constants import C_M_S, G_M3_KG_S2, PI
+from ..cosmology import h0_km_s_mpc_to_s_inv
+from .base import CosmologyBackground, MechanismOutput, MechanismResult, ensure_z_nonnegative
 
 
-@dataclass
+def _h_z_lcdm_s_inv(z: float, bg: CosmologyBackground) -> float:
+    """Local ΛCDM H(z) helper to avoid circular imports (mechanisms <-> frw)."""
+
+    if z < 0:
+        raise ValueError("z must be >= 0")
+    zp1 = 1.0 + z
+    e2 = bg.omega_m * (zp1**3) + bg.omega_r * (zp1**4) + bg.omega_k * (zp1**2) + bg.omega_lambda
+    if e2 <= 0.0 or not math.isfinite(e2):
+        raise ValueError("Non-physical E(z)^2")
+    h0_s_inv = h0_km_s_mpc_to_s_inv(bg.h0_km_s_mpc)
+    return h0_s_inv * math.sqrt(e2)
+
+
+CutoffType = Literal["hubble", "particle_horizon", "event_horizon"]
+
+
+@dataclass(frozen=True)
 class HolographicDarkEnergy:
-    """
-    Holographic dark energy mechanism with explicit IR cutoff parameterization.
+    """Toy holographic dark energy mechanism with explicit IR cutoffs.
 
     Parameters
     ----------
-    cutoff_type : {"hubble", "particle_horizon", "event_horizon"}
-        Choice of IR cutoff scale.
-        - "hubble": L = c/H(z)
-        - "particle_horizon": L = a(z) * ∫ c dz'/H(z') (z to ∞)
-        - "event_horizon": L = a(z) * ∫ c dz'/H(z') (0 to z)
-    c_factor : float, optional
-        Numerical prefactor for IR cutoff (default 1.0).
-        L → c_factor * L (allows tuning without changing cutoff type).
-    background_h0 : float, optional
-        Hubble constant today (km/s/Mpc) for background evolution (default 67.4).
-    background_omega_m : float, optional
-        Matter density parameter today for background (default 0.3).
-
-    Attributes
-    ----------
-    cutoff_type : str
-        IR cutoff parameterization.
-    c_factor : float
-        Numerical prefactor.
-    background_h0 : float
-        Background H0.
-    background_omega_m : float
-        Background Ω_m.
-
-    Notes
-    -----
-    The energy density is computed as:
-        ρ_DE(z) = 3 c^4 / (8π G L(z)^2)
-    where L(z) is the chosen IR cutoff scaled by c_factor.
-
-    For particle/event horizon integrals, we assume a ΛCDM background with
-    H(z) = H0 * sqrt(Ω_m * (1+z)^3 + (1 - Ω_m)) for tractability.
+    cutoff_type:
+        IR cutoff choice.
+    c_factor:
+        Numerical prefactor applied to L: L → c_factor * L.
+        Note: for the Hubble cutoff this maps directly to an algebraic DE fraction.
+    z_max_horizon:
+        Upper integration limit for the particle-horizon approximation.
     """
 
-    cutoff_type: Literal["hubble", "particle_horizon", "event_horizon"]
+    name: str = "holographic_dark_energy"
+    cutoff_type: CutoffType = "hubble"
     c_factor: float = 1.0
-    background_h0: float = 67.4  # km/s/Mpc
-    background_omega_m: float = 0.3
+    z_max_horizon: float = 10.0
 
-    def evaluate(self, z_values: np.ndarray) -> np.ndarray:
-        """
-        Compute holographic dark energy density at redshifts z.
+    def describe_assumptions(self) -> str:
+        return (
+            "Toy holographic dark energy with explicit IR cutoffs. "
+            f"cutoff_type={self.cutoff_type}, c_factor={self.c_factor}. "
+            "Uses ρ_DE = 3 c^4/(8π G L^2) with L chosen as either the Hubble scale or a horizon integral. "
+            "Hubble cutoff uses a simple algebraic self-consistency closure; horizon-integral cutoffs use ΛCDM H(z) inside the integral."
+        )
 
-        Parameters
-        ----------
-        z_values : np.ndarray
-            Redshift values.
+    def evaluate(self, z: float, bg: CosmologyBackground) -> MechanismOutput:
+        ensure_z_nonnegative(z)
+        if self.c_factor <= 0:
+            raise ValueError("c_factor must be > 0")
 
-        Returns
-        -------
-        np.ndarray
-            Energy density in J/m^3.
-        """
-        z_arr = np.atleast_1d(z_values)
-        rho_de = np.zeros_like(z_arr)
-
-        for i, z in enumerate(z_arr):
-            L_m = self._compute_cutoff_m(z)
-            # ρ_DE = 3 c^4 / (8π G L^2)
-            rho_de[i] = 3 * C_LIGHT_M_S**4 / (8 * np.pi * G_SI * L_m**2)
-
-        return rho_de
-
-    def _compute_cutoff_m(self, z: float) -> float:
-        """
-        Compute IR cutoff L(z) in meters.
-
-        Parameters
-        ----------
-        z : float
-            Redshift.
-
-        Returns
-        -------
-        float
-            IR cutoff in meters.
-        """
         if self.cutoff_type == "hubble":
-            # L = c / H(z)
-            H_z_s_inv = self._background_hubble(z)
-            L_m = C_LIGHT_M_S / H_z_s_inv
+            # Self-consistent algebraic closure for L = c_factor * c/H.
+            # With ρ_DE ∝ 1/L^2, this implies ρ_DE(z) = u_crit(z)/c_factor^2.
+            # In the bookkeeping Friedmann form: E^2 = other + E^2/c_factor^2.
+            alpha = 1.0 / (self.c_factor * self.c_factor)
+            denom = 1.0 - alpha
+            if denom <= 0.0:
+                raise ValueError("Non-physical: require c_factor > 1 for Hubble cutoff in this toy closure")
 
-        elif self.cutoff_type == "particle_horizon":
-            # L = a(z) * ∫ c dz' / H(z') from z to ∞
-            # Approximation: integrate from z to z_max (default 10)
-            a_z = 1.0 / (1.0 + z)
-            z_max = 10.0
+            zp1 = 1.0 + z
+            other = bg.omega_m * (zp1**3) + bg.omega_r * (zp1**4) + bg.omega_k * (zp1**2)
+            ez2 = other / denom
+            if ez2 <= 0.0 or not math.isfinite(ez2):
+                raise ValueError("Non-physical E(z)^2 in holographic Hubble-cutoff closure")
 
-            def integrand(zp):
-                return C_LIGHT_M_S / self._background_hubble(zp)
+            h0_s_inv = h0_km_s_mpc_to_s_inv(bg.h0_km_s_mpc)
+            u_crit0 = 3.0 * (h0_s_inv**2) * (C_M_S**2) / (8.0 * PI * G_M3_KG_S2)
+            rho_de = alpha * u_crit0 * ez2
+            return MechanismOutput(
+                result=MechanismResult(z=z, rho_de_j_m3=rho_de, w_de=None),
+                assumptions=self.describe_assumptions(),
+            )
 
-            integral, _ = integrate.quad(integrand, z, z_max)
-            L_m = a_z * integral
+        # Horizon-integral cutoffs (use ΛCDM background H(z) in the integral for tractability).
+        a_z = 1.0 / (1.0 + z)
 
+        def inv_h(zp: float) -> float:
+            return 1.0 / _h_z_lcdm_s_inv(zp, bg)
+
+        if self.cutoff_type == "particle_horizon":
+            z_max = float(self.z_max_horizon)
+            if z_max <= z:
+                raise ValueError("z_max_horizon must exceed z for particle_horizon cutoff")
+            integral, _ = integrate.quad(inv_h, z, z_max, epsabs=0.0, epsrel=1e-9, limit=200)
+            l_base_m = a_z * C_M_S * integral
         elif self.cutoff_type == "event_horizon":
-            # L = a(z) * ∫ c dz' / H(z') from 0 to z
-            a_z = 1.0 / (1.0 + z)
-
-            if z > 0:
-                def integrand(zp):
-                    return C_LIGHT_M_S / self._background_hubble(zp)
-
-                integral, _ = integrate.quad(integrand, 0, z)
-                L_m = a_z * integral
+            if z <= 0.0:
+                # Regularize the z=0 limit.
+                l_base_m = (C_M_S / _h_z_lcdm_s_inv(0.0, bg)) * 1e-3
             else:
-                # At z=0, event horizon integral is zero; use small regularization
-                L_m = C_LIGHT_M_S / self._background_hubble(0) * 1e-3
-
+                integral, _ = integrate.quad(inv_h, 0.0, z, epsabs=0.0, epsrel=1e-9, limit=200)
+                l_base_m = a_z * C_M_S * integral
         else:
             raise ValueError(f"Unknown cutoff_type: {self.cutoff_type}")
 
-        return self.c_factor * L_m
+        l_m = self.c_factor * l_base_m
+        if l_m <= 0.0 or not math.isfinite(l_m):
+            raise ValueError("Non-physical IR cutoff length")
 
-    def _background_hubble(self, z: float) -> float:
-        """
-        Background Hubble parameter H(z) in s^-1.
-
-        Assumes ΛCDM: H(z) = H0 * sqrt(Ω_m (1+z)^3 + Ω_Λ).
-
-        Parameters
-        ----------
-        z : float
-            Redshift.
-
-        Returns
-        -------
-        float
-            H(z) in s^-1.
-        """
-        # Convert H0 from km/s/Mpc to s^-1
-        H0_s_inv = self.background_h0 * 1e3 / (3.085677581e22)  # 1 Mpc = 3.086e22 m
-        omega_lambda = 1.0 - self.background_omega_m
-
-        H_z = H0_s_inv * np.sqrt(
-            self.background_omega_m * (1 + z) ** 3 + omega_lambda
+        rho_de = 3.0 * (C_M_S**4) / (8.0 * PI * G_M3_KG_S2 * (l_m**2))
+        return MechanismOutput(
+            result=MechanismResult(z=z, rho_de_j_m3=rho_de, w_de=None),
+            assumptions=self.describe_assumptions(),
         )
-        return H_z
-
-    def describe_assumptions(self) -> str:
-        """
-        Return a human-readable description of model assumptions.
-
-        Returns
-        -------
-        str
-            Description string.
-        """
-        desc = [
-            "Holographic dark energy mechanism:",
-            f"  - IR cutoff: {self.cutoff_type}",
-            f"  - Numerical factor: c_factor = {self.c_factor}",
-            f"  - Background: ΛCDM with H0={self.background_h0} km/s/Mpc, Ω_m={self.background_omega_m}",
-            "  - Assumptions:",
-            "    * Holographic principle: S_max ~ L^2 / l_P^2",
-            "    * Energy density: ρ_DE ~ 3c^2 / (8πG L^2)",
-            "    * Background for horizon integrals: ΛCDM (no self-consistency)",
-            "  - Limitations:",
-            "    * Toy model — no backreaction or full self-consistent evolution",
-            "    * Particle/event horizon integrals assume fixed ΛCDM background",
-        ]
-        return "\n".join(desc)

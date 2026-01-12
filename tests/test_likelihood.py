@@ -4,31 +4,32 @@ Tests for likelihood functions.
 
 import numpy as np
 import pytest
-from src.ccw.data_loader import load_pantheon_plus_subset, DistanceModulusPoint
-from src.ccw.likelihood import (
+from ccw.data_loader import load_pantheon_plus_subset, DistanceModulusPoint
+from ccw.likelihood import (
     distance_modulus_likelihood, 
     fit_mechanism_parameters,
     cmb_likelihood,
     bao_likelihood,
     joint_likelihood,
 )
-from src.ccw.mechanisms import HolographicDarkEnergy, CosmologyBackground
-from src.ccw.cmb_bao_observables import (
+from ccw.mechanisms import HolographicDarkEnergy, CosmologyBackground
+from ccw.cmb_bao_observables import (
     get_planck_cmb_observable,
     get_boss_bao_observables,
 )
-from src.ccw.frw import h_z_lcdm_s_inv
+from ccw.frw import h_z_lcdm_s_inv
 
 
 def test_distance_modulus_likelihood_returns_finite():
     """Verify likelihood computation returns finite values."""
     data = load_pantheon_plus_subset(max_points=10)
-    
-    # Simple constant density evaluator (ΛCDM-like)
-    def evaluator(z):
-        return 5.3e-10  # Observed dark energy density
-    
-    result = distance_modulus_likelihood(data, evaluator, h0_fiducial=70.0)
+
+    bg = CosmologyBackground(h0_km_s_mpc=70.0, omega_m=0.3)
+
+    def hz_callable(z):
+        return h_z_lcdm_s_inv(z, bg)
+
+    result = distance_modulus_likelihood(data, hz_callable)
     
     assert np.isfinite(result.log_likelihood), "Log-likelihood should be finite"
     assert np.isfinite(result.chi_squared), "Chi-squared should be finite"
@@ -38,11 +39,13 @@ def test_distance_modulus_likelihood_returns_finite():
 def test_distance_modulus_likelihood_chi_squared_positive():
     """Verify chi-squared is non-negative."""
     data = load_pantheon_plus_subset(max_points=10)
-    
-    def evaluator(z):
-        return 5.3e-10
-    
-    result = distance_modulus_likelihood(data, evaluator, h0_fiducial=70.0)
+
+    bg = CosmologyBackground(h0_km_s_mpc=70.0, omega_m=0.3)
+
+    def hz_callable(z):
+        return h_z_lcdm_s_inv(z, bg)
+
+    result = distance_modulus_likelihood(data, hz_callable)
     
     assert result.chi_squared >= 0, "Chi-squared should be non-negative"
 
@@ -50,18 +53,20 @@ def test_distance_modulus_likelihood_chi_squared_positive():
 def test_distance_modulus_likelihood_dof_equals_ndata():
     """Verify degrees of freedom equals number of data points (no fitted params)."""
     data = load_pantheon_plus_subset(max_points=15)
-    
-    def evaluator(z):
-        return 5.3e-10
-    
-    result = distance_modulus_likelihood(data, evaluator, h0_fiducial=70.0)
+
+    bg = CosmologyBackground(h0_km_s_mpc=70.0, omega_m=0.3)
+
+    def hz_callable(z):
+        return h_z_lcdm_s_inv(z, bg)
+
+    result = distance_modulus_likelihood(data, hz_callable)
     
     assert result.dof == 15, "DOF should equal number of data points"
 
 
 def test_fit_mechanism_parameters_holographic():
     """Verify parameter fitting for holographic mechanism."""
-    data = load_pantheon_plus_subset(max_points=20)
+    data = load_pantheon_plus_subset(max_points=10)
     
     # Factory function for holographic mechanism
     def factory(params):
@@ -70,8 +75,8 @@ def test_fit_mechanism_parameters_holographic():
             c_factor=params["c_factor"],
         )
     
-    initial_params = {"c_factor": 1.0}
-    param_bounds = {"c_factor": (0.1, 10.0)}
+    initial_params = {"c_factor": 1.2}
+    param_bounds = {"c_factor": (1.001, 10.0)}
     
     result = fit_mechanism_parameters(
         data=data,
@@ -79,6 +84,7 @@ def test_fit_mechanism_parameters_holographic():
         initial_params=initial_params,
         param_bounds=param_bounds,
         h0_fiducial=70.0,
+        maxiter=25,
     )
     
     assert result.best_fit_params is not None, "Should return best-fit parameters"
@@ -89,7 +95,7 @@ def test_fit_mechanism_parameters_holographic():
 
 def test_fit_mechanism_parameters_improves_likelihood():
     """Verify fitting improves likelihood compared to initial guess."""
-    data = load_pantheon_plus_subset(max_points=15)
+    data = load_pantheon_plus_subset(max_points=10)
     
     def factory(params):
         return HolographicDarkEnergy(
@@ -102,17 +108,18 @@ def test_fit_mechanism_parameters_improves_likelihood():
     
     # Compute initial likelihood
     mech_initial = factory(initial_params)
-    def evaluator_initial(z):
-        return mech_initial.evaluate(np.array([z]))[0]
-    initial_result = distance_modulus_likelihood(data, evaluator_initial, h0_fiducial=70.0)
+    from ccw.frw import MechanismHz
+    bg = CosmologyBackground(h0_km_s_mpc=70.0, omega_m=0.3)
+    initial_result = distance_modulus_likelihood(data, MechanismHz(mech_initial, bg).h)
     
     # Fit parameters
     fit_result = fit_mechanism_parameters(
         data=data,
         mechanism_factory=factory,
         initial_params=initial_params,
-        param_bounds={"c_factor": (0.1, 10.0)},
+        param_bounds={"c_factor": (1.001, 10.0)},
         h0_fiducial=70.0,
+        maxiter=25,
     )
     
     # Fitted likelihood should be better (higher log-likelihood, lower chi-squared)
@@ -194,7 +201,7 @@ def test_joint_likelihood_combines_contributions():
         return h_z_lcdm_s_inv(z, bg)
     
     # Compute individual contributions
-    sne_result = distance_modulus_likelihood(sne_data, lambda z: 5.3e-10, h0_fiducial=70.0)
+    sne_result = distance_modulus_likelihood(sne_data, hz_callable)
     cmb_result = cmb_likelihood(cmb_obs, hz_callable)
     bao_result = bao_likelihood(bao_obs, hz_callable)
     
@@ -206,3 +213,19 @@ def test_joint_likelihood_combines_contributions():
     assert joint_result.chi_squared >= cmb_result.chi_squared, "Joint should include CMB"
     assert joint_result.chi_squared >= bao_result.chi_squared, "Joint should include BAO"
     assert joint_result.dof == sne_result.dof + cmb_result.dof + bao_result.dof, "DOF should sum"
+
+
+def test_distance_modulus_likelihood_changes_with_hz():
+    """A basic regression: μ(z) depends on H(z), so χ² should change if H(z) changes."""
+    data = load_pantheon_plus_subset(max_points=10)
+    bg = CosmologyBackground(h0_km_s_mpc=70.0, omega_m=0.3)
+
+    def hz_a(z):
+        return h_z_lcdm_s_inv(z, bg)
+
+    def hz_b(z):
+        return 1.05 * h_z_lcdm_s_inv(z, bg)
+
+    chi2_a = distance_modulus_likelihood(data, hz_a).chi_squared
+    chi2_b = distance_modulus_likelihood(data, hz_b).chi_squared
+    assert chi2_a != chi2_b

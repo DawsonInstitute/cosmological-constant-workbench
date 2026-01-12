@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Demonstration of joint SNe + CMB + BAO likelihood constraints.
 
@@ -6,20 +7,25 @@ cosmological constraints beyond SNe alone. Compares ΛCDM to holographic
 dark energy mechanism.
 """
 
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
 import numpy as np
-from src.ccw.data_loader import load_pantheon_plus_subset
-from src.ccw.cmb_bao_observables import (
+from ccw.data_loader import load_pantheon_plus_subset
+from ccw.cmb_bao_observables import (
     get_planck_cmb_observable,
     get_boss_bao_observables,
 )
-from src.ccw.likelihood import (
+from ccw.likelihood import (
     distance_modulus_likelihood,
     cmb_likelihood,
     bao_likelihood,
     joint_likelihood,
 )
-from src.ccw.mechanisms import CosmologyBackground, HolographicDarkEnergy
-from src.ccw.frw import h_z_lcdm_s_inv
+from ccw.mechanisms import CosmologyBackground, HolographicDarkEnergy
+from ccw.frw import h_z_lcdm_s_inv, MechanismHz
 
 
 def main():
@@ -48,10 +54,7 @@ def main():
         return h_z_lcdm_s_inv(z, bg_lcdm)
     
     # SNe only
-    def evaluator_lcdm(z):
-        return 5.3e-10  # Constant dark energy density
-    
-    sne_result = distance_modulus_likelihood(sne_data, evaluator_lcdm, h0_fiducial=67.4)
+    sne_result = distance_modulus_likelihood(sne_data, hz_lcdm)
     print(f"   SNe only:  χ² = {sne_result.chi_squared:.2f}, dof = {sne_result.dof}")
     print(f"              χ²/dof = {sne_result.reduced_chi_squared:.2f}")
     
@@ -74,18 +77,11 @@ def main():
     
     # Test 2: Holographic dark energy (Hubble cutoff)
     print("\n3. Holographic dark energy (c=1.0, Hubble cutoff)...")
-    mech_holo = HolographicDarkEnergy(cutoff_type="hubble", c_factor=1.0)
-    
-    def hz_holo(z):
-        # Approximate H(z) using ΛCDM background for now
-        # (self-consistent solver would iterate H and ρ_DE together)
-        return h_z_lcdm_s_inv(z, bg_lcdm)
-    
-    def evaluator_holo(z):
-        return mech_holo.evaluate(np.array([z]))[0]
-    
+    mech_holo = HolographicDarkEnergy(cutoff_type="hubble", c_factor=1.2)
+    hz_holo = MechanismHz(mech_holo, bg_lcdm).h
+
     # SNe only
-    sne_holo_result = distance_modulus_likelihood(sne_data, evaluator_holo, h0_fiducial=67.4)
+    sne_holo_result = distance_modulus_likelihood(sne_data, hz_holo)
     print(f"   SNe only:  χ² = {sne_holo_result.chi_squared:.2f}, dof = {sne_holo_result.dof}")
     print(f"              χ²/dof = {sne_holo_result.reduced_chi_squared:.2f}")
     
@@ -120,13 +116,13 @@ def main():
     print("   • Joint SNe+CMB+BAO provides ~10× tighter constraints than SNe alone")
     print("   • CMB ℓ_A is extremely precise (δℓ_A/ℓ_A ~ 0.05%)")
     print("   • Mechanisms must match BOTH expansion history AND early-universe observables")
-    print("   • Current limitation: using ΛCDM background for H(z)")
-    print("     → Phase J.22 (self-consistent solver) will fix this")
+    print("   • Expansion history now comes from each mechanism's ρ_DE(z) via Friedmann")
+    print("     (HDE Hubble cutoff uses an algebraic self-consistency closure)")
     
     print("\n" + "=" * 70)
     print("NEXT STEPS:")
     print("- Phase I.20: Add σ₈ tension diagnostic (matter power spectrum)")
-    print("- Phase J.22: Implement self-consistent H(z) solver (no ΛCDM approximation)")
+    print("- Phase J.22: Extend to fully coupled ODE solvers where needed")
     print("- Scan mechanism parameter space with joint constraints")
     print("=" * 70)
 

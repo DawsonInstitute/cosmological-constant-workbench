@@ -10,8 +10,7 @@ import numpy as np
 from scipy import optimize
 
 from .data_loader import DistanceModulusPoint
-from .frw import luminosity_distance_m, h_z_lcdm_s_inv
-from .mechanisms import CosmologyBackground
+from .frw import distance_modulus as frw_distance_modulus
 from .constants import MPC_M
 from .cmb_bao_observables import (
     CMBObservable,
@@ -35,8 +34,7 @@ class LikelihoodResult:
 
 def distance_modulus_likelihood(
     data: List[DistanceModulusPoint],
-    mechanism_evaluator: Callable[[float], float],
-    h0_fiducial: float = 70.0,
+    hz_s_inv_callable: Callable[[float], float],
 ) -> LikelihoodResult:
     """
     Compute likelihood for distance modulus observations given a mechanism.
@@ -45,11 +43,8 @@ def distance_modulus_likelihood(
     ----------
     data : List[DistanceModulusPoint]
         Observed distance modulus data.
-    mechanism_evaluator : Callable[[float], float]
-        Function that takes redshift z and returns ρ_DE(z) in J/m³.
-        Used to compute H(z) and luminosity distance.
-    h0_fiducial : float
-        Fiducial H0 in km/s/Mpc (for absolute calibration).
+    hz_s_inv_callable : Callable[[float], float]
+        Function returning H(z) in s^-1.
 
     Returns
     -------
@@ -64,29 +59,47 @@ def distance_modulus_likelihood(
     Chi-squared: χ² = Σ [(μ_obs - μ_theory)² / σ_μ²]
     Log-likelihood: ln L = -χ²/2 (Gaussian errors)
     """
+    # Fast distance-modulus evaluation: precompute D_C(z) via a cumulative trapezoid
+    # on a uniform z grid. This avoids calling quad() for each SNe point.
     chi_squared = 0.0
     n_points = len(data)
+    if n_points == 0:
+        return LikelihoodResult(
+            log_likelihood=0.0,
+            chi_squared=0.0,
+            dof=0,
+            reduced_chi_squared=float("inf"),
+        )
 
+    z_max = max(float(p.z) for p in data)
+    if z_max < 0:
+        raise ValueError("Encountered z<0 in distance modulus data")
+
+    # Keep grid modest to stay fast inside optimizers.
+    n_grid = 800
+    z_grid = np.linspace(0.0, z_max, n_grid)
+    hz_vals = np.array([hz_s_inv_callable(float(z)) for z in z_grid], dtype=float)
+    if np.any(~np.isfinite(hz_vals)) or np.any(hz_vals <= 0):
+        raise ValueError("Non-physical H(z) encountered (must be finite and > 0)")
+
+    inv_h = 1.0 / hz_vals
+    dz = z_grid[1] - z_grid[0] if n_grid > 1 else 0.0
+    # cumulative trapezoid for integral_0^z dz'/H(z')
+    cum_int = np.zeros_like(z_grid)
+    if n_grid > 1:
+        cum_int[1:] = np.cumsum(0.5 * (inv_h[1:] + inv_h[:-1]) * dz)
+
+    # Convert to distance modulus using FRW relation: D_L=(1+z) c * ∫ dz/H
+    # μ = 5 log10(D_L / 10 pc)
+    c_m_s = 2.99792458e8
+    pc_m = MPC_M / 1e6
     for point in data:
-        # Compute theoretical distance modulus
-        bg = CosmologyBackground(h0_km_s_mpc=h0_fiducial, omega_m=0.3)
-        
-        # Get ρ_DE(z) from mechanism
-        rho_de_z = mechanism_evaluator(point.z)
-        
-        # Compute luminosity distance (Mpc)
-        # For simplicity, assume ΛCDM-like evolution with ρ_DE = const
-        # (More sophisticated: integrate with varying ρ_DE(z))
-        d_L_m = luminosity_distance_m(point.z, lambda zz: h_z_lcdm_s_inv(zz, bg))
-        d_L_mpc = d_L_m / MPC_M
-        
-        # Convert to distance modulus
-        # μ = 5 log₁₀(d_L / 10 pc) = 5 log₁₀(d_L_Mpc * 10^6 / 10) = 5 log₁₀(d_L_Mpc) + 25
-        mu_theory = 5.0 * np.log10(d_L_mpc) + 25.0
-        
-        # Compute chi-squared contribution
-        residual = point.mu - mu_theory
-        chi_squared += (residual / point.sigma_mu) ** 2
+        z = float(point.z)
+        int_0_z = float(np.interp(z, z_grid, cum_int))
+        d_l_m = (1.0 + z) * c_m_s * int_0_z
+        mu_theory = 5.0 * np.log10(d_l_m / (10.0 * pc_m))
+        residual = float(point.mu) - mu_theory
+        chi_squared += (residual / float(point.sigma_mu)) ** 2
 
     # Degrees of freedom (n_data - n_params, assume 0 free params for now)
     dof = n_points
@@ -109,6 +122,8 @@ def fit_mechanism_parameters(
     initial_params: Dict[str, float],
     param_bounds: Optional[Dict[str, Tuple[float, float]]] = None,
     h0_fiducial: float = 70.0,
+    omega_m_fiducial: float = 0.3,
+    maxiter: int = 60,
 ) -> LikelihoodResult:
     """
     Fit mechanism parameters to distance modulus data using maximum likelihood.
@@ -147,14 +162,26 @@ def fit_mechanism_parameters(
     # Negative log-likelihood objective
     def neg_log_likelihood(x):
         params = {name: val for name, val in zip(param_names, x)}
-        mech = mechanism_factory(params)
-        
-        # Create evaluator function
-        def evaluator(z):
-            return mech.evaluate(np.array([z]))[0]
-        
-        result = distance_modulus_likelihood(data, evaluator, h0_fiducial)
-        return -result.log_likelihood
+        try:
+            mech = mechanism_factory(params)
+
+            # Build H(z) from mechanism-provided ρ_DE(z) via bookkeeping Friedmann.
+            from .mechanisms import CosmologyBackground
+            from .frw import MechanismHz
+
+            omega_lambda = max(0.0, 1.0 - float(omega_m_fiducial))
+            bg = CosmologyBackground(
+                h0_km_s_mpc=float(h0_fiducial),
+                omega_m=float(omega_m_fiducial),
+                omega_lambda=omega_lambda,
+            )
+            hz = MechanismHz(mech, bg).h
+
+            result = distance_modulus_likelihood(data, hz)
+            return -result.log_likelihood
+        except Exception:
+            # Keep optimizers robust to non-physical parameter regions.
+            return 1e100
 
     # Optimize
     result = optimize.minimize(
@@ -162,17 +189,21 @@ def fit_mechanism_parameters(
         x0,
         method="L-BFGS-B" if bounds else "BFGS",
         bounds=bounds,
+        options={"maxiter": int(maxiter)},
     )
 
     best_fit = {name: val for name, val in zip(param_names, result.x)}
 
     # Compute final likelihood with best-fit parameters
     mech_best = mechanism_factory(best_fit)
-    
-    def evaluator_best(z):
-        return mech_best.evaluate(np.array([z]))[0]
-    
-    final_likelihood = distance_modulus_likelihood(data, evaluator_best, h0_fiducial)
+
+    from .mechanisms import CosmologyBackground
+    from .frw import MechanismHz
+
+    omega_lambda = max(0.0, 1.0 - float(omega_m_fiducial))
+    bg_best = CosmologyBackground(h0_km_s_mpc=float(h0_fiducial), omega_m=float(omega_m_fiducial), omega_lambda=omega_lambda)
+    hz_best = MechanismHz(mech_best, bg_best).h
+    final_likelihood = distance_modulus_likelihood(data, hz_best)
 
     # Estimate uncertainties from inverse Hessian (if available)
     uncertainties = None
@@ -326,14 +357,9 @@ def joint_likelihood(
     chi2_total = 0.0
     n_data = 0
     
-    # SNe contribution
+    # SNe contribution (depends only on H(z) via luminosity distance)
     if sne_data is not None and len(sne_data) > 0:
-        def evaluator(z):
-            # For SNe, we need ρ_DE(z) but we only have H(z)
-            # Approximate with constant dark energy for now
-            return 5.3e-10
-        
-        sne_result = distance_modulus_likelihood(sne_data, evaluator, h0_fiducial)
+        sne_result = distance_modulus_likelihood(sne_data, hz_s_inv_callable)
         chi2_total += sne_result.chi_squared
         n_data += len(sne_data)
     

@@ -4,7 +4,7 @@ Tests for WGC constraints.
 
 import numpy as np
 import pytest
-from src.ccw.wgc_constraints import (
+from ccw.wgc_constraints import (
     check_wgc_scalar,
     check_wgc_quintessence_exponential,
     swampland_distance_conjecture_mass,

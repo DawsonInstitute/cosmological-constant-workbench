@@ -3,7 +3,7 @@ Tests for data loader.
 """
 
 import pytest
-from src.ccw.data_loader import load_pantheon_plus_subset, DistanceModulusPoint
+from ccw.data_loader import load_pantheon_plus_subset, DistanceModulusPoint
 
 
 def test_load_builtin_dataset():

@@ -4,7 +4,7 @@ Tests for TCC constraints.
 
 import numpy as np
 import pytest
-from src.ccw.tcc_constraints import (
+from ccw.tcc_constraints import (
     check_tcc_lcdm,
     check_tcc_inflation,
     check_tcc_hubble_bound,
