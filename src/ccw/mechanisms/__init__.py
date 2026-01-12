@@ -11,6 +11,7 @@ from .scalar_field import ScalarFieldQuintessence
 from .sequestering import SequesteringToy
 from .susy_breaking import SUSYBreaking, required_m_susy_for_observed_lambda
 from .unimodular import UnimodularBookkeeping
+from .holographic_dark_energy import HolographicDarkEnergy
 
 __all__ = [
     "CosmologyBackground",
@@ -25,4 +26,5 @@ __all__ = [
     "SUSYBreaking",
     "required_m_susy_for_observed_lambda",
     "UnimodularBookkeeping",
+    "HolographicDarkEnergy",
 ]

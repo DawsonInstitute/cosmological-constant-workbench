@@ -10,6 +10,7 @@ from .baseline import BaselineInputs, compute_baseline
 from .mechanisms import (
     CPLQuintessence,
     CosmologyBackground,
+    HolographicDarkEnergy,
     RunningVacuumRVM,
     ScalarFieldQuintessence,
     SequesteringToy,
@@ -49,6 +50,13 @@ def evaluate_mechanism(name: str, params: Dict[str, Any], z: float, bg: Cosmolog
             m_susy_gev=float(params.get("m_susy_gev", 1e3)),
             loop_factor=float(params.get("loop_factor", 1.0 / (16.0 * 3.14159**2))),
             log_enhancement=bool(params.get("log_enhancement", True)),
+        )
+    elif key in {"holographic", "holographic_dark_energy", "hde"}:
+        mech = HolographicDarkEnergy(
+            cutoff_type=params.get("cutoff_type", "hubble"),
+            c_factor=float(params.get("c_factor", 1.0)),
+            background_h0=float(params.get("background_h0", 67.4)),
+            background_omega_m=float(params.get("background_omega_m", 0.3)),
         )
     elif key in {"unimodular", "unimodular_bookkeeping"}:
         mech = UnimodularBookkeeping(

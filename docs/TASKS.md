@@ -100,7 +100,7 @@ Right now: **no novel discovery** suitable for a strong paper claim.
    - Surface explicit experimental priors (e.g., $m_{SUSY}\gtrsim 1$ TeV).
    - Provide sweep hooks and “required tuning” diagnostics.
 
-13. [ ] Implement a **holographic / entropic gravity** toy mechanism:
+13. [x] Implement a **holographic / entropic gravity** toy mechanism:
    - Start with a simple HDE-style ansatz (explicit $L$ choice; document what is assumed).
    - Compute implied $\rho_{DE}(z)$ and compare FRW observables.
    - Add validation tests for continuity and positivity.
