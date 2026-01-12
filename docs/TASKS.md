@@ -109,11 +109,145 @@ Right now: **no novel discovery** suitable for a strong paper claim.
 
 ## Phase G — Empirical validation (UQ without pure curve-fitting)
 
-14. [ ] Add Bayesian/UQ scaffolding for parameter constraints:
+14. [x] Add Bayesian/UQ scaffolding for parameter constraints:
    - Start with a tiny, self-contained dataset loader (CSV) and a likelihood for distance modulus $\mu(z)$.
    - Prefer lightweight dependencies (SciPy optimization first; MCMC optional).
    - Output posteriors/evidence-like summaries to quantify tuning pressure.
 
-15. [ ] Add a minimal “null test” harness:
+15. [x] Add a minimal "null test" harness:
    - Define a small set of observational sanity bounds (e.g., $w\approx -1$ today; $H(z)$ monotonicity).
    - Auto-mark parameter regions as excluded in sweep outputs.
+
+---
+
+## Status Assessment (Jan 12, 2026)
+
+**What we have accomplished:**
+- ✓ Reproducible baseline + mechanism framework (Phases A-D)
+- ✓ Theoretical constraints (swampland, holographic) that filter mechanisms (Phase E)
+- ✓ Explicit particle-physics-scale mechanisms (SUSY, holographic) with tuning diagnostics (Phase F)
+- ✓ Empirical validation tools (Bayesian fitting, null tests) (Phase G)
+
+**What we have NOT solved:**
+- The cosmological constant problem remains **unsolved**.
+- All implemented mechanisms require tuning:
+  - **SUSY**: requires m_SUSY ~ 10^-3 eV (10^14 fine-tuning vs LHC bounds)
+  - **Holographic**: requires c_factor ~ O(1) (no explanation for why c_factor is not arbitrary)
+  - **Scalar field**: swampland constraints rule out flat potentials (tension with ΛCDM)
+  - **Sequestering/Unimodular**: explicit bookkeeping shows residual requires tuning
+
+**Critical missing ingredients for a solution:**
+1. **Dynamic cancellation mechanism**: No mechanism that *explains* why vacuum energy gravitates differently (all are phenomenological reparameterizations).
+2. **First-principles prediction**: No mechanism derives ρ_Λ from fundamental constants without free parameters.
+3. **Distinctive testable prediction**: No mechanism predicts a unique observable signature beyond fitting ρ_Λ(z).
+
+**Paper readiness:**
+- Current status: **Not ready for publication**.
+- Gap: No novel discovery (bound, prediction, or mechanism) that advances beyond existing literature.
+
+---
+
+## Phase H — Deep theoretical exploration (high-risk, high-reward)
+
+16. [x] Implement **trans-Planckian censorship conjecture (TCC)** constraints:
+   - Encode TCC bound on expansion history: $H \lesssim \Lambda_{TCC}$ with $\Lambda_{TCC} \sim 10^{-12}$ GeV.
+   - Check if current H(z) evolution satisfies TCC over cosmic history.
+   - Explore tension between TCC and eternal inflation.
+
+17. [ ] Implement **weak gravity conjecture (WGC)** consistency checks:
+   - For scalar field mechanisms, check WGC bound on mass vs coupling.
+   - Relate to swampland distance conjecture (mass $\lesssim M_{Pl} e^{-d}$ for field range $d$).
+   - Document parameter space excluded by WGC + swampland.
+
+18. [ ] Add **emergent gravity / entropic force** toy framework:
+   - Implement Verlinde-style entropic force ($F = T \nabla S$) on Hubble horizon.
+   - Derive modified Friedmann equation from holographic entanglement entropy.
+   - Test if emergent gravity can reproduce ΛCDM without Λ.
+
+---
+
+## Phase I — Advanced empirical constraints
+
+19. [ ] Integrate **CMB + BAO** observables (not just SNe Ia):
+   - Add angular diameter distance $d_A(z)$ for CMB acoustic scale.
+   - Add BAO Hubble parameter measurements $H(z)$.
+   - Extend likelihood to joint SNe+CMB+BAO fit.
+
+20. [ ] Implement **$\sigma_8$ tension** diagnostic:
+   - Compute matter power spectrum amplitude from mechanisms.
+   - Check if modified gravity mechanisms alleviate Hubble/$\sigma_8$ tensions.
+   - Quantify improvement over ΛCDM in joint fits.
+
+21. [ ] Add **gravitational wave standard sirens** (mock data):
+   - Generate mock GW luminosity distance measurements.
+   - Test if mechanisms with varying $G_{eff}(z)$ or modified gravity are distinguishable.
+
+---
+
+## Phase J — Self-consistency and backreaction
+
+22. [ ] Implement **self-consistent cosmology solver** for mechanisms:
+   - Currently: mechanisms provide ρ_DE(z), but H(z) computed from ΛCDM background.
+   - Upgrade: solve coupled ODEs for H(z) and mechanism fields simultaneously.
+   - Validate: self-consistent solution matches toy approximation for small deviations.
+
+23. [ ] Add **backreaction estimates** for quantum corrections:
+   - Estimate loop corrections to effective cosmological constant from mechanism fields.
+   - Check if radiative stability is maintained (no large hierarchy regenerated).
+   - Quantify residual tuning after backreaction.
+
+24. [ ] Implement **UV completion checker**:
+   - For scalar field mechanisms, check Wilsonian UV completion criteria.
+   - Flag mechanisms requiring trans-Planckian field excursions or non-renormalizable operators.
+   - Document what UV physics is implicitly assumed.
+
+---
+
+## Phase K — LQG integration (speculative, high-effort)
+
+25. [ ] Extend **lqg-cosmological-constant-predictor** adapter to full pipeline:
+   - Currently: optional comparison only.
+   - Upgrade: use LQG-predicted Λ as input constraint for other mechanisms.
+   - Test: can LQG prediction + holographic mechanism remove c_factor tuning?
+
+26. [ ] Implement **polymer cosmology** corrections to Friedmann equation:
+   - Add LQG-motivated $\rho^2$ corrections: $H^2 = \frac{8\pi G}{3} \rho (1 - \rho/\rho_c)$.
+   - Check if polymer bounce at high $\rho$ affects late-time dark energy.
+   - Validate against lqg-polymer-field-generator outputs.
+
+27. [ ] Add **spin foam amplitude** evaluation for cosmological observables:
+   - Use lqg-volume-kernel-catalog to compute transition amplitudes.
+   - Derive effective ρ_DE from coarse-graining spin network states.
+   - Compare to phenomenological mechanisms (ultimate first-principles test).
+
+---
+
+## Immediate next steps (priority order)
+
+**High priority (feasible, high impact):**
+1. Phase H.16-17: TCC + WGC constraints (filter parameter space further)
+2. Phase I.19: CMB+BAO integration (stronger empirical constraints)
+3. Phase J.22: Self-consistent solver (fix approximation in current pipeline)
+
+**Medium priority (exploratory):**
+4. Phase H.18: Emergent gravity toy model (test radical alternative)
+5. Phase I.20: σ₈ tension diagnostic (test modified gravity)
+
+**Low priority (high-effort, uncertain payoff):**
+6. Phase K: LQG deep integration (requires major effort, speculative)
+
+---
+
+## Stopping criterion
+
+We will consider the cosmological constant problem **solved** if we achieve **any one** of:
+
+1. **Predictive mechanism**: A mechanism that derives ρ_Λ from fundamental constants (no free params) and matches observations within errors.
+
+2. **Distinctive signature**: A mechanism that predicts a unique observable (e.g., time-varying w(z), modified GW propagation, CMB anomaly) verified by data.
+
+3. **Rigorous bound**: A no-go theorem or consistency bound that excludes all but a narrow parameter range, reducing effective tuning to O(1).
+
+4. **LQG first-principles**: Spin foam amplitude calculation reproducing observed Λ from discrete geometry (no phenomenological inputs).
+
+Current status: **None of the above achieved.** The problem remains open.
