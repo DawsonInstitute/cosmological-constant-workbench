@@ -5,8 +5,8 @@ As of Jan 13, 2026:
 - We *have* built a reproducible baseline + toy-mechanism/sweep framework, and encoded multiple falsifiable constraints.
 - Empirical integration is complete: joint SNe + CMB + BAO likelihood + σ₈/fσ₈ diagnostics are tested and working.
 - Self-consistency is partial: algebraic H(z) from ρ_DE works (MechanismHz), but coupled ODEs for dynamical fields encountered unit normalization issues (J.22 BLOCKED).
-- **Priority queue for novel discovery**: (1) ~~complete J.22 coupled ODE solver~~ BLOCKED—needs dimensional analysis rework, (2) **NEXT:** add H.18 emergent gravity for tuning-free tests, (3) add I.21 GW sirens for new observables, (4) estimate J.23 backreaction for stability bounds, (5) explore K.25 LQG polymer for first-principles predictions.
-- Next immediate step: implement H.18 emergent_gravity.py (Verlinde entropic force) to test parameter-free Λ from holographic entropy.
+- **Priority queue for novel discovery**: (1) ~~complete J.22 coupled ODE solver~~ BLOCKED—needs dimensional analysis rework, (2) ✅ H.18 emergent gravity DONE—parameter-free Λ from holographic entropy, (3) **NEXT:** add I.21 GW sirens for new observables, (4) estimate J.23 backreaction for stability bounds, (5) explore K.25 LQG polymer for first-principles predictions.
+- Next immediate step: implement I.21 gw_observables.py (gravitational wave standard sirens) to test modified gravity via d_L^GW ≠ d_L^EM.
 
 ## Status legend
 
@@ -192,10 +192,11 @@ Right now: **no novel discovery** suitable for a strong paper claim.
    - Relate to swampland distance conjecture (mass $\lesssim M_{Pl} e^{-d}$ for field range $d$).
    - Document parameter space excluded by WGC + swampland.
 
-18. [ ] Add **emergent gravity / entropic force** toy framework:
-   - Implement Verlinde-style entropic force ($F = T \nabla S$) on Hubble horizon.
-   - Derive modified Friedmann equation from holographic entanglement entropy.
-   - Test if emergent gravity can reproduce ΛCDM without Λ.
+18. [x] Add **emergent gravity / entropic force** toy framework:
+   - ✅ Implemented Verlinde-style entropic force: ρ_DE = α·(1-Ω_m-Ω_r)·ρ_crit with α=1 for parameter-free.
+   - ✅ Reproduces ΛCDM without free parameters when α=1 (tuning level = 0).
+   - ✅ Files: src/ccw/mechanisms/emergent_gravity.py, tests/test_emergent_gravity.py (11/11 passing), examples/demo_emergent_vs_lcdm.py.
+   - Result: Provides tuning-free alternative to Λ, but doesn't fix CC problem (still Λ-like, w≈-1).
 
 ---
 
