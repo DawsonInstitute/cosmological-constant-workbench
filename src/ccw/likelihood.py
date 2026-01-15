@@ -19,6 +19,7 @@ from .cmb_bao_observables import (
     cmb_acoustic_scale_ell_a,
     dilation_scale_dv,
 )
+from .gw_observables import GWObservable, gw_chi_squared
 
 
 @dataclass
@@ -322,15 +323,56 @@ def bao_likelihood(
     )
 
 
+def gw_likelihood(
+    gw_obs_list: List[GWObservable],
+    hz_s_inv_callable: Callable[[float], float],
+    g_eff_func: Optional[Callable[[float], float]] = None,
+) -> LikelihoodResult:
+    """
+    Compute GW standard siren likelihood.
+
+    Parameters
+    ----------
+    gw_obs_list : List[GWObservable]
+        GW siren measurements.
+    hz_s_inv_callable : Callable[[float], float]
+        Function returning H(z) in s^-1.
+    g_eff_func : Callable[[float], float], optional
+        Function returning G_eff(z) / G_N. None → GR (no modification).
+
+    Returns
+    -------
+    LikelihoodResult
+        Likelihood result from GW sirens.
+
+    Notes
+    -----
+    Provides constraints on modified gravity via d_L^GW(z) measurements.
+    In GR: d_L^GW = d_L^EM (no deviation).
+    Modified gravity: d_L^GW = d_L^EM × sqrt(G_N / G_eff(z)).
+    """
+    chi2 = gw_chi_squared(gw_obs_list, hz_s_inv_callable, g_eff_func=g_eff_func)
+    n_obs = len(gw_obs_list)
+    
+    return LikelihoodResult(
+        log_likelihood=-0.5 * chi2,
+        chi_squared=chi2,
+        dof=n_obs,
+        reduced_chi_squared=chi2 / n_obs if n_obs > 0 else float("inf"),
+    )
+
+
 def joint_likelihood(
     sne_data: Optional[List[DistanceModulusPoint]],
     cmb_obs: Optional[CMBObservable],
     bao_obs_list: Optional[List[BAOObservable]],
     hz_s_inv_callable: Callable[[float], float],
+    gw_obs_list: Optional[List[GWObservable]] = None,
+    g_eff_func: Optional[Callable[[float], float]] = None,
     h0_fiducial: float = 70.0,
 ) -> LikelihoodResult:
     """
-    Compute joint SNe + CMB + BAO likelihood.
+    Compute joint SNe + CMB + BAO + GW likelihood.
 
     Parameters
     ----------
@@ -342,6 +384,10 @@ def joint_likelihood(
         BAO measurements.
     hz_s_inv_callable : Callable[[float], float]
         Function returning H(z) in s^-1.
+    gw_obs_list : List[GWObservable], optional
+        GW standard siren measurements (new in Phase I.21).
+    g_eff_func : Callable[[float], float], optional
+        Modified gravity G_eff(z)/G_N for GW propagation. None → GR.
     h0_fiducial : float
         Fiducial H0 for SNe absolute calibration.
 
@@ -352,7 +398,13 @@ def joint_likelihood(
 
     Notes
     -----
-    Chi-squared: χ² = χ²_SNe + χ²_CMB + χ²_BAO
+    Chi-squared: χ² = χ²_SNe + χ²_CMB + χ²_BAO + χ²_GW
+    
+    GW sirens add constraints on modified gravity via distance mismatch:
+    - GR: d_L^GW = d_L^EM → no extra constraints beyond geometry
+    - Modified: d_L^GW ≠ d_L^EM → constrains G_eff(z) parameters
+    
+    Example: Emergent gravity with β ≠ 0 predicts small GW-EM tension.
     """
     chi2_total = 0.0
     n_data = 0
@@ -374,6 +426,12 @@ def joint_likelihood(
         bao_result = bao_likelihood(bao_obs_list, hz_s_inv_callable)
         chi2_total += bao_result.chi_squared
         n_data += len(bao_obs_list)
+    
+    # GW contribution (NEW: Phase I.21)
+    if gw_obs_list is not None and len(gw_obs_list) > 0:
+        gw_result = gw_likelihood(gw_obs_list, hz_s_inv_callable, g_eff_func=g_eff_func)
+        chi2_total += gw_result.chi_squared
+        n_data += len(gw_obs_list)
     
     dof = n_data
     reduced_chi2 = chi2_total / dof if dof > 0 else float('inf')

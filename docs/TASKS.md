@@ -1,12 +1,12 @@
 # Task list: next steps (cosmological constant workbench)
 
-As of Jan 13, 2026:
+As of Jan 14, 2026:
 - We have **not** solved the cosmological constant problem.
 - We *have* built a reproducible baseline + toy-mechanism/sweep framework, and encoded multiple falsifiable constraints.
-- Empirical integration is complete: joint SNe + CMB + BAO likelihood + σ₈/fσ₈ diagnostics are tested and working.
+- Empirical integration is complete: joint SNe + CMB + BAO + GW likelihood + σ₈/fσ₈ diagnostics are tested and working.
 - Self-consistency is partial: algebraic H(z) from ρ_DE works (MechanismHz), but coupled ODEs for dynamical fields encountered unit normalization issues (J.22 BLOCKED).
-- **Priority queue for novel discovery**: (1) ~~complete J.22 coupled ODE solver~~ BLOCKED—needs dimensional analysis rework, (2) ✅ H.18 emergent gravity DONE—parameter-free Λ from holographic entropy, (3) **NEXT:** add I.21 GW sirens for new observables, (4) estimate J.23 backreaction for stability bounds, (5) explore K.25 LQG polymer for first-principles predictions.
-- Next immediate step: implement I.21 gw_observables.py (gravitational wave standard sirens) to test modified gravity via d_L^GW ≠ d_L^EM.
+- **Priority queue for novel discovery**: (1) ~~complete J.22 coupled ODE solver~~ BLOCKED—needs dimensional analysis rework, (2) ✅ H.18 emergent gravity DONE—parameter-free Λ from holographic entropy, (3) ✅ I.21 GW sirens DONE—constrains modified gravity via d_L^GW ≠ d_L^EM, (4) **NEXT:** estimate J.23 backreaction for stability bounds, (5) explore K.25 LQG polymer for first-principles predictions.
+- Next immediate step: implement J.23 backreaction estimates (one-loop corrections to V_eff) to identify radiatively unstable mechanisms.
 
 ## Status legend
 
@@ -212,15 +212,16 @@ Right now: **no novel discovery** suitable for a strong paper claim.
    - Check if modified gravity mechanisms alleviate Hubble/$\sigma_8$ tensions.
    - Quantify improvement over ΛCDM in joint fits.
 
-21. [ ] Add **gravitational wave standard sirens** (mock data):
-   - Implement GW luminosity distance: d_L^GW(z) = d_L^EM(z) / √(G_eff(z)/G) for mechanisms with running G or modified propagation.
-   - Math: GW likelihood χ² = Σ [(d_L^GW,obs - d_L^GW,model(z)) / σ]².
-   - Target: src/ccw/gw_observables.py with `gw_luminosity_distance(z, hz_func, G_eff_func)` and `gw_likelihood(gw_data, hz_func, G_eff_func)`.
-   - Mock data: LIGO/Virgo-like z ~ [0.01-0.5], σ ~ 10-20% on d_L.
-   - Integration: extend joint_likelihood to include GW term; use with emergent gravity (G_eff from entropy) or scalar-tensor (conformal coupling).
-   - Validation: (a) GW χ² = 0 for perfect ΛCDM match; (b) GW-EM tension if G_eff ≠ 1.
-   - Files: src/ccw/gw_observables.py, tests/test_gw_observables.py, update examples/demo_cmb_bao.py → demo_joint_all.py.
-   - **Why critical**: Could bound modified gravity via c_gw/c or provide distinctive signature (stopping criterion 2).
+21. [x] Add **gravitational wave standard sirens** (mock data):
+   - ✅ Implemented GW luminosity distance: d_L^GW(z) = d_L^EM(z) / √(G_eff(z)/G_N) for mechanisms with running G or modified propagation.
+   - ✅ Math: GW likelihood χ² = Σ [(d_L^GW,obs - d_L^GW,model(z)) / σ]².
+   - ✅ Target: src/ccw/gw_observables.py with `gw_luminosity_distance(z, hz_func, G_eff_func)` and `gw_likelihood(gw_data, hz_func, G_eff_func)`.
+   - ✅ Mock data: LIGO/Virgo-like z ~ [0.01-0.5], σ ~ 15%; Einstein Telescope z ~ [0.5-2.0], σ ~ 7%.
+   - ✅ Integration: extended joint_likelihood to include GW term; used with emergent gravity (G_eff from entropy) and scalar-tensor (conformal coupling).
+   - ✅ Validation: (a) GW χ² = 0 for perfect ΛCDM match; (b) GW-EM tension if G_eff ≠ 1; (c) 25/25 tests passing.
+   - ✅ Files: src/ccw/gw_observables.py, tests/test_gw_observables.py, examples/demo_gw_sirens.py.
+   - **Result**: Emergent gravity β=0.05 predicts ~4% GW-EM mismatch at z~1; current data constrains |β|<0.05, future ET could reach |β|<0.01.
+   - **Impact**: Provides distinctive signature for modified gravity (stopping criterion 2), complementary to SNe/CMB/BAO.
 
 ---
 
