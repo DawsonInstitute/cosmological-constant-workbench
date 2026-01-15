@@ -244,10 +244,12 @@ Right now: **no novel discovery** suitable for a strong paper claim.
        - Not a first-principles derivation; parameters (α, prefactor, μ0) are scan knobs.
    - **Why critical**: Could yield first-principles Λ from μ₀ scale (stopping criterion 4), major breakthrough.
 
-26. [ ] Extend **lqg-cosmological-constant-predictor** adapter to full pipeline:
-   - Currently: optional comparison only.
-   - Upgrade: use LQG-predicted Λ as input constraint for other mechanisms.
-   - Test: can LQG prediction + holographic mechanism remove c_factor tuning?
+26. [x] Extend **lqg-cosmological-constant-predictor** adapter to full pipeline:
+   - ✅ Implemented LQG-constrained mechanisms that use LQG Λ as a target.
+   - ✅ Holographic DE: solves for c_factor such that ρ_HDE = ρ_LQG.
+   - ✅ Sequestering: solves for f_cancel such that ρ_residual = ρ_LQG.
+   - ✅ Files: src/ccw/integrations/lqg_constrained.py, tests/test_lqg_constrained.py, examples/demo_lqg_constrained.py.
+   - Result: LQG constraint can make holographic DE "natural" (c ~ O(1)) IF LQG prediction is itself natural; sequestering still requires extreme fine-tuning (~10^120).
 
 27. [ ] Add **spin foam amplitude** evaluation for cosmological observables:
    - Use lqg-volume-kernel-catalog to compute transition amplitudes.
