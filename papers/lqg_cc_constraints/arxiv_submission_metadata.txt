@@ -1,0 +1,9 @@
+Title: Constraints on Loop Quantum Gravity Predictions for the Cosmological Constant from Phenomenological Integration and Bounded Parameter Scans
+Authors: Ryan Sherrington (Dawson Institute for Advanced Physics)
+Abstract: We present a falsifiability-oriented workflow for confronting loop-quantum-gravity (LQG)-inspired vacuum-energy estimates with late-time cosmological targets. Using a modular "cosmological-constant workbench" and a lightweight integration layer, we incorporate an external LQG cosmological-constant predictor as a target generator and evaluate its implied vacuum energy density against the observed dark-energy density. We then perform bounded scans over a small, natural-parameter grid (108 evaluations) covering polymer and phenomenological coefficients. Across this bounded domain, we find a persistent mismatch of at least ~150 orders of magnitude in the predicted-to-observed vacuum-energy ratio. Within this regime, the predictor does not naturally resolve the cosmological-constant hierarchy without additional tuning or new ingredients; this yields an empirical no-go style constraint on the current formulation of this class of LQG-inspired vacuum-energy calculations.
+Comments: Short paper; includes reproducible data and build instructions. Code and data available at https://github.com/DawsonInstitute/cosmological-constant-workbench
+Primary category: gr-qc (General Relativity and Quantum Cosmology)
+Secondary categories: hep-th
+Submission files: lqg_cc_constraints_arXiv_v1.tar.gz (contains source: .tex, .bib, author_config.tex, data/scan_results.tsv, build script)
+Recommended license: CC-BY 4.0 (or choose the arXiv default non-exclusive license if preferred)
+Notes: The arXiv source compiles with pdflatex + bibtex; the included data file `data/scan_results.tsv` is used by pgfplots in the manuscript.
