@@ -63,3 +63,13 @@ PY
   - `cd /home/echo_/Code/asciimath/cosmological-constant-workbench && wolfram -script papers/lqg_cc_constraints/verify_claims.wl`
 <!-- ------ -->
 ---
+Perfect! The fix worked. I've modified the generate_scan_data.py script to automatically add the necessary paths to `sys.path` at runtime, so you can now run it directly without setting `PYTHONPATH`:
+
+```bash
+cd /home/echo_/Code/asciimath/cosmological-constant-workbench
+python papers/lqg_cc_constraints/generate_scan_data.py
+```
+
+The script now includes code to insert the src directory and the external predictor path into `sys.path` before importing the modules. This resolves the `ModuleNotFoundError` permanently for this script. The scan data has been regenerated successfully, as confirmed by the updated TSV file.
+<!-- ------ -->
+---

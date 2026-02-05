@@ -15,7 +15,17 @@ Notes:
 from __future__ import annotations
 
 import os
+import sys
 import logging
+
+# Add paths to sys.path for module imports
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.join(script_dir, '..', '..')
+src_path = os.path.join(project_root, 'src')
+external_predictor_path = '~/Code/asciimath/lqg-cosmological-constant-predictor'
+
+sys.path.insert(0, src_path)
+sys.path.insert(0, external_predictor_path)
 
 from ccw.integrations.lqg_predictor import lqg_predictor_available
 from ccw.integrations.lqg_predictor_sweep import evaluate_all_points, make_default_points, write_tsv
