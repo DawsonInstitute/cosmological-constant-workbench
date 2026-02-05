@@ -15,6 +15,7 @@ Notes:
 from __future__ import annotations
 
 import os
+import logging
 
 from ccw.integrations.lqg_predictor import lqg_predictor_available
 from ccw.integrations.lqg_predictor_sweep import evaluate_all_points, make_default_points, write_tsv
@@ -22,6 +23,9 @@ from ccw.mechanisms import CosmologyBackground
 
 
 def main() -> None:
+    # The external predictor is verbose by default; keep scan generation quiet and faster.
+    logging.getLogger().setLevel(logging.WARNING)
+
     if not lqg_predictor_available():
         raise RuntimeError(
             "LQG predictor not available. Ensure sibling repo 'lqg-cosmological-constant-predictor' is present "

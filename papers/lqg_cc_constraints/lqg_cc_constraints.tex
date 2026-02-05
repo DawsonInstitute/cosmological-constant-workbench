@@ -45,7 +45,7 @@ from Phenomenological Integration and Bounded Parameter Scans}
 We present a falsifiability-oriented workflow for confronting loop-quantum-gravity (LQG)-inspired vacuum-energy estimates with late-time cosmological targets.
 Using a modular ``cosmological-constant workbench'' and a lightweight integration layer, we incorporate an external LQG cosmological-constant predictor as a target generator and evaluate its implied vacuum energy density $\rho_{\rm vac}$ against the observed dark-energy density $\rho_{\Lambda,0}$.
 We then perform bounded scans over a small, natural-parameter grid (108 evaluations) covering polymer and phenomenological coefficients.
-Across this bounded domain, we find a persistent mismatch of at least $\sim 150$ orders of magnitude in $\rho_{\rm vac}/\rho_{\Lambda,0}$.
+Across this bounded domain, we find a persistent mismatch of at least $\sim 127$ orders of magnitude in $\rho_{\rm vac}/\rho_{\Lambda,0}$.
 Within this regime, the predictor does not naturally resolve the cosmological-constant hierarchy without additional tuning or new ingredients.
 The scan therefore provides an empirical no-go style constraint on the current formulation of this class of LQG-inspired vacuum-energy calculations.
 \end{abstract}
@@ -83,13 +83,13 @@ For each evaluation we compute
 \end{equation}
 where $\rho_{\Lambda,0}$ is computed from a standard background ($H_0 = 67.4\,\mathrm{km\,s^{-1}\,Mpc^{-1}}$, $\Omega_{\Lambda}=0.6889$).
 
-\section{Results: A 150+ Order Mismatch}
+\section{Results: A 127+ Order Mismatch}
 Figure~\ref{fig:hist} shows the distribution of $\Delta$ over the scan grid.
 In the bounded domain we find
 \begin{equation}
-\min\limits_{\rm scan}\, |\Delta| \approx 150.7,
+\min\limits_{\rm scan}\, |\Delta| \approx 127.1,
 \end{equation}
-so the smallest mismatch over the scan is still $\mathcal{O}(10^{150})$ in $\rho_{\rm pred}/\rho_{\Lambda,0}$.
+so the smallest mismatch over the scan is still $\mathcal{O}(10^{127})$ in $\rho_{\rm pred}/\rho_{\Lambda,0}$.
 
 \begin{figure}[t]
 \centering
@@ -103,14 +103,14 @@ so the smallest mismatch over the scan is still $\mathcal{O}(10^{150})$ in $\rho
     xmajorgrids=true,
 ]
 \addplot+[
-    hist={bins=18, data min=140, data max=160},
+    hist={bins=18, data min=125, data max=175},
     fill=black!20,
     draw=black
 ] table [y=log10_ratio] {data/scan_results.tsv};
 \end{axis}
 \end{tikzpicture}
 \caption{Histogram of $\Delta = \log_{10}(\rho_{\rm pred}/\rho_{\Lambda,0})$ over a bounded 108-point scan.
-Within this scan, the predictor remains $\gtrsim 150$ orders of magnitude above the observed dark-energy density.}
+Within this scan, the predictor remains $\gtrsim 127$ orders of magnitude above the observed dark-energy density.}
 \label{fig:hist}
 \end{figure}
 
@@ -125,8 +125,9 @@ Possible escape routes include:
 or (iii) additional dynamics (e.g., true sequestering-like cancellations~\cite{kaloper2014}) not present in the predictor.
 
 \section{Conclusion}
-Within a bounded, natural-parameter scan, the integrated LQG-inspired predictor yields vacuum energy densities that exceed the observed dark-energy density by at least $\sim 150$ orders of magnitude.
+Within a bounded, natural-parameter scan, the integrated LQG-inspired predictor yields vacuum energy densities that exceed the observed dark-energy density by at least $\sim 127$ orders of magnitude.
 This constitutes a stringent empirical constraint on the current formulation and motivates either new ingredients or an alternative route to spin-foam amplitude suppression if LQG is to address the cosmological-constant hierarchy.
+
 
 \section{Acknowledgments}
 This work was supported by internal research and development funds. The authors thank the quantum gravity community for helpful discussions.

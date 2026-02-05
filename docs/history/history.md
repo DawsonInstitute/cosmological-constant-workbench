@@ -43,3 +43,23 @@ PY
 - The deeper mathematical claims you listed are **not verifiable from the TeX**, and in the external predictor code they are **partly not implemented as stated** (Planck-length definition is wrong; $_2F_1$ isn’t actually evaluated; key swept parameters don’t affect the computed ρ at the stated scan scale).
 <!-- ------ -->
 ---
+**What’s now verified (after fixes)**
+- The bounded scan claim is still numerically reproducible, but the *corrected* minimum mismatch is now ≈ **127.105** orders (not 150.7), with best-case **ρ_pred ≈ 6.7253×10^117 J/m³** at (μ=0.2, γ_coeff=0.3, α=0.05, j_max=5). This is consistent between the regenerated TSV and the Wolfram script output.
+- The scan dimensions are no longer inert: regenerated TSV has **36 distinct ρ_pred** values across the 108 points (so γ_coeff/α/j_max now matter).
+
+**Key fixes applied**
+- Correct SI Planck length definition in the external predictor: lqg-cosmological-constant-predictor/cosmological_constant_predictor.py
+- Wire `gamma_coefficient` into the scale correction so it can affect Λ-enhancement: cosmological_constant_predictor.py
+- Make `volume_eigenvalue_cutoff` drive the actual k-sum cutoff, include real `_2F1` via `scipy.special.hyp2f1`, and apply α-scaling in the summand: cosmological_constant_predictor.py
+
+**Manuscript updated**
+- Updated abstract + results + figure range to the regenerated result: cosmological-constant-workbench/papers/lqg_cc_constraints/lqg_cc_constraints.tex
+
+**How to reproduce**
+- Regenerate scan TSV:
+  - `cd /home/echo_/Code/asciimath/cosmological-constant-workbench && PYTHONPATH=src:/home/echo_/Code/asciimath/lqg-cosmological-constant-predictor python papers/lqg_cc_constraints/generate_scan_data.py`
+- Mathematica/Wolfram verification (symbolic + numeric scan):
+  - cosmological-constant-workbench/papers/lqg_cc_constraints/verify_claims.wl
+  - `cd /home/echo_/Code/asciimath/cosmological-constant-workbench && wolfram -script papers/lqg_cc_constraints/verify_claims.wl`
+<!-- ------ -->
+---
